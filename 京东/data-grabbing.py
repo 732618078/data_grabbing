@@ -1,6 +1,5 @@
 import time
 import re
-import requests
 from pyquery import PyQuery as pq
 from lxml import etree
 import pymongo
@@ -87,16 +86,14 @@ def get_products(href):
     '''
     try:
         href = 'http:' + href  # 构造url
-
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36'}
-        response = requests.get(href, headers=headers, timeout=10)
-        Selector = etree.HTML(response.text)
-
         browser.get(href)
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body')))
         html = browser.page_source
         doc = pq(html)
+
+        Selector = etree.HTML(html)
         print(href)
+
         datas = {
             '店铺名称': Selector.xpath('//*[@id="popbox"]/div/div[1]/h3/a/text()')[0],
             '店铺星级': re.compile('<div class="star".*?title="(.*?)".*?</div>', re.S).search(str(doc)).group(1),
@@ -144,7 +141,7 @@ def main():
         total = search()
         total = int(re.compile('(\d+)').search(total).group(1))
         # print(total)
-        for i in range(2, 3):
+        for i in range(2, total+1):
             next_page()
             time.sleep(3)  #控制爬取速度应对反爬
         for href in href_list:
